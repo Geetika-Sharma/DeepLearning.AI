@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Tennis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+            letter-spacing: 3px;
+        }
+
+        #settings {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: rgba(0,0,0,0.4);
+            padding: 12px 20px;
+            border-radius: 10px;
+        }
+
+        #settings label {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        #settings select,
+        #settings input {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #2a2a4a;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        #settings input {
+            width: 60px;
+            text-align: center;
+        }
+
+        #startBtn {
+            padding: 8px 20px;
+            background: #e8c94f;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #startBtn:hover {
+            background: #f5d96a;
+        }
+
+        #gameContainer {
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            border: 3px solid #555;
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.7);
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.55);
+            border-radius: 4px;
+        }
+
+        #overlay h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #fff;
+        }
+
+        #overlay p {
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        #scoreboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 14px;
+            background: rgba(0,0,0,0.4);
+            padding: 12px 30px;
+            border-radius: 10px;
+        }
+
+        .score-box {
+            text-align: center;
+        }
+
+        .score-box .name {
+            font-size: 0.85rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .score-box .pts {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #e8c94f;
+            line-height: 1;
+        }
+
+        .score-divider {
+            font-size: 2rem;
+            color: #555;
+        }
+
+        #winTarget {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏓 Table Tennis</h1>
+
+    <div id="settings">
+        <label>Difficulty:
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </label>
+        <label>Points to Win:
+            <input type="number" id="winPoints" value="7" min="1" max="21">
+        </label>
+        <button id="startBtn">New Game</button>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="700" height="450"></canvas>
+        <div id="overlay">
+            <h2>Table Tennis</h2>
+            <p>Press <strong>New Game</strong> to start</p>
+        </div>
+    </div>
+
+    <div id="scoreboard">
+        <div class="score-box">
+            <div class="name">You</div>
+            <div class="pts" id="playerScore">0</div>
+        </div>
+        <div>
+            <div class="score-divider">:</div>
+            <div id="winTarget" style="text-align:center"></div>
+        </div>
+        <div class="score-box">
+            <div class="name">Computer</div>
+            <div class="pts" id="computerScore">0</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('startBtn');
+        const playerScoreEl = document.getElementById('playerScore');
+        const computerScoreEl = document.getElementById('computerScore');
+        const winTargetEl = document.getElementById('winTarget');
+
+        const W = canvas.width;
+        const H = canvas.height;
+        const PADDLE_W = 12;
+        const PADDLE_H = 80;
+        const BALL_R = 9;
+        const MARGIN = 18;
+
+        let bgImage = new Image();
+        bgImage.src = 'https://raw.githubusercontent.com/https-deeplearning-ai/lc-build-with-andrew-platform/main/img/tabletennis43.jpg';
+
+        const difficultySettings = {
+            easy:   { speed: 4.5, aiSpeed: 2.8, aiError: 40 },
+            medium: { speed: 6,   aiSpeed: 4.2, aiError: 20 },
+            hard:   { speed: 7.5, aiSpeed: 6.2, aiError: 6  }
+        };
+
+        let game = {
+            running: false,
+            playerScore: 0,
+            computerScore: 0,
+            winPoints: 7,
+            ball: {},
+            player: {},
+            computer: {},
+            difficulty: 'medium',
+            animId: null,
+            aiTarget: H / 2
+        };
+
+        let keys = {};
+        document.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (['ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
+        });
+        document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+        function resetBall(direction = 1) {
+            const settings = difficultySettings[game.difficulty];
+            const angle = (Math.random() * 60 - 30) * Math.PI / 180;
+            game.ball = {
+                x: W / 2,
+                y: H / 2,
+                vx: Math.cos(angle) * settings.speed * direction,
+                vy: Math.sin(angle) * settings.speed,
+                r: BALL_R
+            };
+        }
+
+        function initGame() {
+            game.difficulty = document.getElementById('difficulty').value;
+            game.winPoints = Math.max(1, parseInt(document.getElementById('winPoints').value) || 7);
+            game.playerScore = 0;
+            game.computerScore = 0;
+            winTargetEl.textContent = `First to ${game.winPoints}`;
+            updateScoreboard();
+
+            game.player = {
+                x: MARGIN,
+                y: H / 2 - PADDLE_H / 2,
+                w: PADDLE_W,
+                h: PADDLE_H,
+                speed: 6
+            };
+            game.computer = {
+                x: W - MARGIN - PADDLE_W,
+                y: H / 2 - PADDLE_H / 2,
+                w: PADDLE_W,
+                h: PADDLE_H
+            };
+
+            resetBall(1);
+            game.aiTarget = H / 2;
+            game.running = true;
+            overlay.style.display = 'none';
+
+            if (game.animId) cancelAnimationFrame(game.animId);
+            loop();
+        }
+
+        function updateScoreboard() {
+            playerScoreEl.textContent = game.playerScore;
+            computerScoreEl.textContent = game.computerScore;
+        }
+
+        function movePlayer() {
+            if (keys['ArrowUp']) {
+                game.player.y -= game.player.speed;
+            }
+            if (keys['ArrowDown']) {
+                game.player.y += game.player.speed;
+            }
+            game.player.y = Math.max(0, Math.min(H - PADDLE_H, game.player.y));
+        }
+
+        function moveAI() {
+            const settings = difficultySettings[game.difficulty];
+            const comp = game.computer;
+            const ball = game.ball;
+
+            // Update AI target occasionally with error
+            if (Math.random() < 0.04) {
+                game.aiTarget = ball.y + (Math.random() * 2 - 1) * settings.aiError;
+            }
+
+            const compCenter = comp.y + PADDLE_H / 2;
+            const diff = game.aiTarget - compCenter;
+
+            if (Math.abs(diff) > 2) {
+                comp.y += Math.sign(diff) * Math.min(settings.aiSpeed, Math.abs(diff));
+            }
+            comp.y = Math.max(0, Math.min(H - PADDLE_H, comp.y));
+        }
+
+        function collidesWithPaddle(ball, paddle) {
+            return ball.x - ball.r < paddle.x + paddle.w &&
+                   ball.x + ball.r > paddle.x &&
+                   ball.y > paddle.y &&
+                   ball.y < paddle.y + paddle.h;
+        }
+
+        function updateBall() {
+            const ball = game.ball;
+            const settings = difficultySettings[game.difficulty];
+            const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // Top/bottom bounce
+            if (ball.y - ball.r <= 0) {
+                ball.y = ball.r;
+                ball.vy *= -1;
+            }
+            if (ball.y + ball.r >= H) {
+                ball.y = H - ball.r;
+                ball.vy *= -1;
+            }
+
+            // Player paddle collision
+            if (ball.vx < 0 && collidesWithPaddle(ball, game.player)) {
+                ball.x = game.player.x + game.player.w + ball.r;
+                const hitPos = (ball.y - (game.player.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+                const angle = hitPos * 60 * Math.PI / 180;
+                const newSpeed = Math.min(speed * 1.05, settings.speed * 1.8);
+                ball.vx = Math.cos(angle) * newSpeed;
+                ball.vy = Math.sin(angle) * newSpeed;
+                game.aiTarget = ball.y + (Math.random() * 2 - 1) * settings.aiError;
+            }
+
+            // Computer paddle collision
+            if (ball.vx > 0 && collidesWithPaddle(ball, game.computer)) {
+                ball.x = game.computer.x - ball.r;
+                const hitPos = (ball.y - (game.computer.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+                const angle = hitPos * 60 * Math.PI / 180;
+                const newSpeed = Math.min(speed * 1.05, settings.speed * 1.8);
+                ball.vx = -Math.cos(angle) * newSpeed;
+                ball.vy = Math.sin(angle) * newSpeed;
+            }
+
+            // Scoring
+            if (ball.x + ball.r < 0) {
+                game.computerScore++;
+                updateScoreboard();
+                checkWin('Computer');
+                if (game.running) { resetBall(1); game.aiTarget = H / 2; }
+            }
+            if (ball.x - ball.r > W) {
+                game.playerScore++;
+                updateScoreboard();
+                checkWin('You');
+                if (game.running) { resetBall(-1); game.aiTarget = H / 2; }
+            }
+        }
+
+        function checkWin(who) {
+            if (game.playerScore >= game.winPoints || game.computerScore >= game.winPoints) {
+                game.running = false;
+                overlay.style.display = 'flex';
+                overlay.innerHTML = `
+                    <h2>${who === 'You' ? '🎉 You Win!' : '💻 Computer Wins!'}</h2>
+                    <p>Final Score: ${game.playerScore} – ${game.computerScore}</p>
+                    <p style="margin-top:10px;color:#aaa">Press <strong>New Game</strong> to play again</p>
+                `;
+            }
+        }
+
+        function drawBackground() {
+            // Draw blurred/darkened background image
+            if (bgImage.complete && bgImage.naturalWidth > 0) {
+                ctx.globalAlpha = 0.35;
+                ctx.drawImage(bgImage, 0, 0, W, H);
+                ctx.globalAlpha = 1;
+            }
+
+            // Green table surface overlay
+            ctx.fillStyle = 'rgba(34, 120, 55, 0.82)';
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        function drawTable() {
+            // Table border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(6, 6, W - 12, H - 12);
+
+            // Center line (net)
+            ctx.setLineDash([8, 6]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.beginPath();
+            ctx.moveTo(W / 2, 0);
+            ctx.lineTo(W / 2, H);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Net post top
+            ctx.fillStyle = '#ccc';
+            ctx.fillRect(W / 2 - 4, 0, 8, 12);
+            ctx.fillRect(W / 2 - 4, H - 12, 8, 12);
+
+            // Service line left
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(W / 4, 6);
+            ctx.lineTo(W / 4, H - 6);
+            ctx.stroke();
+            // Service line right
+            ctx.beginPath();
+            ctx.moveTo(3 * W / 4, 6);
+            ctx.lineTo(3 * W / 4, H - 6);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawPaddle(paddle) {
+            const rx = 6;
+            ctx.fillStyle = '#f5e6c8'; // beige
+            ctx.beginPath();
+            ctx.moveTo(paddle.x + rx, paddle.y);
+            ctx.lineTo(paddle.x + paddle.w - rx, paddle.y);
+            ctx.quadraticCurveTo(paddle.x + paddle.w, paddle.y, paddle.x + paddle.w, paddle.y + rx);
+            ctx.lineTo(paddle.x + paddle.w, paddle.y + paddle.h - rx);
+            ctx.quadraticCurveTo(paddle.x + paddle.w, paddle.y + paddle.h, paddle.x + paddle.w - rx, paddle.y + paddle.h);
+            ctx.lineTo(paddle.x + rx, paddle.y + paddle.h);
+            ctx.quadraticCurveTo(paddle.x, paddle.y + paddle.h, paddle.x, paddle.y + paddle.h - rx);
+            ctx.lineTo(paddle.x, paddle.y + rx);
+            ctx.quadraticCurveTo(paddle.x, paddle.y, paddle.x + rx, paddle.y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Grip stripe
+            ctx.fillStyle = '#d4a96a';
+            ctx.fillRect(paddle.x + 3, paddle.y + PADDLE_H * 0.35, paddle.w - 6, PADDLE_H * 0.3);
+        }
+
+        function drawBall() {
+            const ball = game.ball;
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            ctx.beginPath();
+            ctx.ellipse(ball.x + 3, ball.y + 3, ball.r, ball.r * 0.7, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ball
+            const grad = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 1, ball.x, ball.y, ball.r);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(1, '#d0d0d0');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            drawBackground();
+            drawTable();
+            drawPaddle(game.player);
+            drawPaddle(game.computer);
+            drawBall();
+        }
+
+        function loop() {
+            if (!game.running) return;
+            movePlayer();
+            moveAI();
+            updateBall();
+            draw();
+            game.animId = requestAnimationFrame(loop);
+        }
+
+        startBtn.addEventListener('click', initGame);
+
+        // Initial draw
+        winTargetEl.textContent = `First to 7`;
+        (function initialDraw() {
+            ctx.clearRect(0, 0, W, H);
+            bgImage.onload = () => {
+                ctx.globalAlpha = 0.35;
+                ctx.drawImage(bgImage, 0, 0, W, H);
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = 'rgba(34, 120, 55, 0.82)';
+                ctx.fillRect(0, 0, W, H);
+            };
+            ctx.fillStyle = 'rgba(34, 120, 55, 0.82)';
+            ctx.fillRect(0, 0, W, H);
+        })();
+    </script>
+</body>
+</html>

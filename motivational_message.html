@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daily Angel Inspiration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Great+Vibes&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f3f8fb;
+      --accent:#b7d7e8;
+      --gold:#d8b35a;
+      --card-bg:linear-gradient(180deg,#fffefc,#fbfcff);
+      --muted:#65707a;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{background:linear-gradient(180deg,var(--bg),#ffffff 60%);color:#123;display:flex;align-items:flex-start;justify-content:center;padding:36px;}
+    .container{width:1100px;display:flex;gap:32px;align-items:flex-start;}
+    .panel{flex:1;max-width:520px;background:rgba(255,255,255,0.7);padding:28px;border-radius:16px;box-shadow:0 8px 30px rgba(15,30,50,0.06);backdrop-filter:blur(6px);}
+    .site-title{font-family:Playfair Display,serif;color:#24425b;font-size:36px;margin:0 0 6px;}
+    .serene-sub{color:var(--muted);margin:0 0 18px;font-size:14px;}
+    label{display:block;font-weight:600;margin-top:12px;color:#274a5a;font-size:13px;}
+    input[type="text"],input[type="number"],select,textarea{width:100%;padding:10px 12px;border:1px solid #e6eef4;border-radius:10px;margin-top:8px;font-size:14px;background:#fff;}
+    textarea{min-height:80px;resize:vertical;}
+    .actions{margin-top:16px;display:flex;gap:12px;align-items:center;}
+    button{background:linear-gradient(180deg,var(--accent),#e6f3fb);border:2px solid var(--gold);color:#1a3b4a;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(22,60,80,0.08)}
+    button:active{transform:translateY(1px)}
+    .stack-wrap{width:380px;display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
+    .stack-title{font-family:Playfair Display,serif;color:#2b5a6e;margin:0 0 8px;font-size:18px;}
+    .cards{width:320px;display:flex;flex-direction:column-reverse;gap:12px;align-items:flex-end;}
+    .angel-card{width:320px;border-radius:18px;padding:20px 18px 18px;background:var(--card-bg);border:2px solid rgba(216,179,90,0.12);box-shadow:0 10px 30px rgba(25,50,80,0.08), inset 0 1px 0 rgba(255,255,255,0.6);position:relative;overflow:hidden;font-size:14px;color:#18313c;transform-origin:right top;animation:cardIn .36s ease;}
+    @keyframes cardIn{from{opacity:0;transform:translateY(-8px) scale(.995)}to{opacity:1;transform:none}}
+    .wing{position:absolute;right:-18px;top:-10px;opacity:0.12;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.06));}
+    .card-header{display:flex;align-items:baseline;gap:8px;justify-content:space-between;}
+    .person{font-weight:700;color:#274a5a;font-size:16px;font-family:Playfair Display,serif;}
+    .meta{font-size:12px;color:var(--muted)}
+    .quote{margin-top:12px;font-family:Great Vibes,cursive;font-size:22px;color:#16323b;line-height:1.2}
+    .foot{margin-top:12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+    .tag{background:rgba(37,104,119,0.06);padding:4px 8px;border-radius:999px;font-size:11px;color:#1f5460}
+    .angel-card::before{content:"";position:absolute;inset:0;background-image:linear-gradient(transparent 0 40%, rgba(255,255,255,0.02) 40% 41%, transparent 41% 100%);pointer-events:none;mix-blend-mode:soft-light;opacity:0.9}
+    @media(max-width:980px){body{padding:18px} .container{flex-direction:column;align-items:stretch;width:100%} .stack-wrap{order:-1;width:100%;align-items:center} .cards{align-items:center}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h1 class="site-title">Daily Angel Inspiration</h1>
+      <p class="serene-sub">A gentle card to lift a spirit — enter a name, age and how they're feeling.</p>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" placeholder="e.g., Maya" />
+
+      <label for="age">Age</label>
+      <input id="age" type="number" min="0" placeholder="e.g., 29" />
+
+      <label for="feeling">Feeling</label>
+      <select id="feeling">
+        <option value="">Choose or type below</option>
+        <option>sad</option>
+        <option>tired</option>
+        <option>anxious</option>
+        <option>lost</option>
+        <option>stressed</option>
+        <option>happy</option>
+        <option>excited</option>
+      </select>
+
+      <label for="feelingFree">Or describe how they feel</label>
+      <textarea id="feelingFree" placeholder="e.g., overwhelmed, hopeful, unsure..."></textarea>
+
+      <div class="actions">
+        <button id="generate">Generate Quote</button>
+        <div style="color:var(--muted);font-size:13px">Cards stack on the right — newest on top.</div>
+      </div>
+    </div>
+
+    <div class="stack-wrap">
+      <h2 class="stack-title">Angel Cards</h2>
+      <div class="cards" id="cards"></div>
+    </div>
+  </div>
+
+  <script>
+    const cardsEl = document.getElementById('cards');
+    const nameEl = document.getElementById('name');
+    const ageEl = document.getElementById('age');
+    const feelingSel = document.getElementById('feeling');
+    const feelingFree = document.getElementById('feelingFree');
+    const btn = document.getElementById('generate');
+
+    const templates = {
+      generic:[
+        "Remember, {name}, every small step today is a victory — you are seen and capable of gentle miracles.",
+        "{name}, breathe slowly. The heart remembers strength even when the mind feels unsure.",
+        "Dear {name}, your kindness is a light. Keep going — the world needs what only you give."
+      ],
+      sad:[
+        "{name}, it's okay to feel low. Let yourself rest — tenderness heals what rushing cannot.",
+        "{name}, even clouds move on; your warmth will find its way through the grey."
+      ],
+      tired:[
+        "{name}, rest is not surrender. Give your soul a pause; strength returns in gentle doses.",
+        "{name}, pause, breathe, then keep moving — rest fuels courage."
+      ],
+      anxious:[
+        "{name}, notice one small thing you can control right now. Calm grows from tiny anchors.",
+        "{name}, you are braver than the worry you feel. Breathe, and take one tiny step forward."
+      ],
+      lost:[
+        "{name}, being lost is part of a map being redrawn. Trust the path is shaping beneath your feet.",
+        "{name}, when directions fade, curiosity becomes your compass."
+      ],
+      happy:[
+        "{name}, hold this joy close — it's a reminder of everything blooming inside you.",
+        "{name}, celebrate the light you bring; it ripples outward in ways you might not see."
+      ],
+      excited:[
+        "{name}, channel this bright energy — let it lift small dreams into motion.",
+        "{name}, your excitement is a spark; tend it and watch surprises unfold."
+      ],
+      stressed:[
+        "{name}, breathe slow and centralize one tiny priority. Release the rest with kindness.",
+        "{name}, you are doing more than you know. Step back enough to notice how far you've come."
+      ]
+    };
+
+    function pickMessage(name, age, feelingRaw){
+      const feeling = (feelingRaw||'').toLowerCase();
+      let pool = templates.generic.slice();
+      for(const key of Object.keys(templates)){
+        if(key !== 'generic' && (feeling.includes(key) || feeling === key)){
+          pool = templates[key].concat(pool);
+          break;
+        }
+      }
+      const msg = pool[Math.floor(Math.random()*pool.length)];
+      return msg.replace(/\{name\}/g, name||'Friend').replace(/\{age\}/g, age||'');
+    }
+
+    function makeCard(name, age, feeling){
+      const date = new Date().toLocaleString();
+      const card = document.createElement('article');
+      card.className = 'angel-card';
+      card.innerHTML = `
+        <svg class="wing" width="220" height="120" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M12 64c24-36 76-46 110-28 24 14 44 40 68 52-36 18-88 8-112-8-22-14-54-26-66-16z" fill="#d8b35a"/>
+        </svg>
+        <div class="card-header">
+          <div>
+            <div class="person">${name||'Friend'}</div>
+            <div class="meta">${age? age + ' years' : ''} ${feeling? ' • ' + feeling : ''}</div>
+          </div>
+          <div class="tag">Angel Note</div>
+        </div>
+        <div class="quote">${escapeHtml(pickMessage(name, age, feeling))}</div>
+        <div class="foot"><div class="meta">${date}</div><div class="meta">With gentle wings</div></div>
+      `;
+      return card;
+    }
+
+    function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[s]); }
+
+    btn.addEventListener('click',()=>{
+      const name = nameEl.value.trim() || 'Friend';
+      const age = ageEl.value.trim();
+      const feeling = (feelingFree.value.trim() || feelingSel.value || '').trim();
+      const card = makeCard(name, age, feeling);
+      cardsEl.insertBefore(card, cardsEl.firstChild);
+      card.scrollIntoView({behavior:'smooth',block:'nearest'});
+      feelingFree.value = '';
+      feelingSel.selectedIndex = 0;
+    });
+
+    (function seed(){
+      const seedCard = makeCard('Beloved', '', 'hopeful');
+      cardsEl.appendChild(seedCard);
+    })();
+  </script>
+</body>
+</html>

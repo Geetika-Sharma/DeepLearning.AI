@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎉 Birthday Card Comedy Corner</title>
+  <style>
+    :root{
+      --bg1:#fff1f2;
+      --bg2:#eef9ff;
+      --accent:#ff4d6d;
+      --accent2:#7c4dff;
+      --ink:#2a2a3b;
+      --paper:#fffef8;
+      --line:#f0d8a8;
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 20% 10%, #ffd6e0 0 15%, transparent 16%),
+        radial-gradient(circle at 90% 20%, #d9f0ff 0 14%, transparent 15%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      min-height:100vh;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px;
+    }
+
+    .page-title{
+      margin:0 0 18px;
+      text-align:center;
+      font-size:clamp(1.7rem, 4vw, 2.8rem);
+      color:var(--accent2);
+      text-shadow: 0 2px 0 #fff, 0 6px 18px rgba(124,77,255,.18);
+      letter-spacing:.5px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: minmax(280px, 420px) 1fr;
+      gap:24px;
+      align-items:start;
+    }
+
+    .panel{
+      background:#ffffffd9;
+      backdrop-filter: blur(4px);
+      border:2px solid #ffffff;
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 12px 28px rgba(44, 24, 90, .12);
+    }
+
+    .panel h2{
+      margin:0 0 12px;
+      color:var(--accent);
+      font-size:1.25rem;
+    }
+
+    label{
+      display:block;
+      margin:10px 0 6px;
+      font-weight:700;
+      font-size:.95rem;
+    }
+
+    input{
+      width:100%;
+      padding:10px 12px;
+      border:2px solid #ecd8ff;
+      border-radius:10px;
+      font-size:1rem;
+      outline:none;
+    }
+    input:focus{ border-color:var(--accent2); }
+
+    button{
+      margin-top:14px;
+      width:100%;
+      border:0;
+      border-radius:10px;
+      padding:11px 14px;
+      font-size:1rem;
+      font-weight:800;
+      color:white;
+      cursor:pointer;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 8px 16px rgba(124,77,255,.25);
+    }
+
+    .cards-col h2{
+      margin:0 0 10px;
+      color:var(--accent2);
+    }
+
+    .cards{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    /* Card interior look */
+    .card{
+      position:relative;
+      background:var(--paper);
+      border-radius:14px;
+      border:1px solid #f1e3c8;
+      overflow:hidden;
+      box-shadow:0 10px 20px rgba(46, 26, 88, .14);
+      min-height:170px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:0;
+      bottom:0;
+      width:2px;
+      background:linear-gradient(#e6cfa1, #f8e9cc, #e6cfa1);
+      transform:translateX(-1px);
+    }
+
+    .card .left{
+      padding:18px;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0 26px,
+          var(--line) 27px 28px
+        );
+    }
+
+    .card .left .greet{
+      margin:0;
+      font-size:1.15rem;
+      color:#d6336c;
+      font-weight:800;
+    }
+
+    .card .left .to{
+      margin:8px 0 0;
+      font-size:1.05rem;
+      font-weight:700;
+    }
+
+    .card .right{
+      padding:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      background:linear-gradient(180deg,#fffef8,#fff8eb);
+    }
+
+    .msg{
+      margin:0;
+      font-size:1.02rem;
+      line-height:1.45;
+    }
+
+    .empty{
+      padding:18px;
+      border:2px dashed #d8c6ff;
+      border-radius:12px;
+      color:#6b5a8e;
+      background:#ffffffaa;
+    }
+
+    @media (max-width: 860px){
+      .layout{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="page-title">🎈 Giggle-a-Gram Birthday Card Maker 🎂</h1>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Create a Card</h2>
+        <form id="cardForm">
+          <label for="name">Person’s Name</label>
+          <input id="name" name="name" type="text" placeholder="e.g. Maya" required />
+
+          <label for="age">Age</label>
+          <input id="age" name="age" type="number" min="1" max="130" placeholder="e.g. 29" required />
+
+          <label for="hobby">Hobby</label>
+          <input id="hobby" name="hobby" type="text" placeholder="e.g. salsa dancing" required />
+
+          <button type="submit">Generate Funny Birthday Card</button>
+        </form>
+      </section>
+
+      <section class="cards-col">
+        <h2>🎁 Your Birthday Cards</h2>
+        <div id="cards" class="cards">
+          <div id="emptyState" class="empty">No cards yet. Create one and it will appear here on the right.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("cardForm");
+    const cardsEl = document.getElementById("cards");
+    const emptyState = document.getElementById("emptyState");
+
+    const openers = [
+      "You’re not getting older, just becoming a classic.",
+      "Another year wiser... or at least better at pretending.",
+      "Age is just a number, but cake is a lifestyle.",
+      "Your birthday is proof that legends keep leveling up."
+    ];
+
+    const hobbyJokes = [
+      (h, a) => `At ${a}, your ${h} skills are now officially "advanced chaos."`,
+      (h, a) => `May your ${h} adventures this year be 10% skill and 90% dramatic storytelling.`,
+      (h, a) => `Scientists confirm ${h} burns calories... mostly from laughing at yourself.`,
+      (h, a) => `If ${h} were an Olympic sport, you'd win gold and a lifetime supply of snacks.`
+    ];
+
+    const closers = [
+      "Stay fabulous, stay funny, and never trust tiny slices of cake.",
+      "May your candles be few and your party playlist be perfect.",
+      "Keep shining brighter than the frosting.",
+      "Wishing you laughs, luck, and zero awkward birthday songs."
+    ];
+
+    function pick(arr){
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function makeMessage(name, age, hobby){
+      return `${pick(openers)} ${pick(hobbyJokes)(hobby, age)} ${pick(closers)}`;
+    }
+
+    function createCard(name, age, hobby){
+      const message = makeMessage(name, age, hobby);
+
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="left">
+          <p class="greet">Happy Birthday! 🎉</p>
+          <p class="to">Dear ${name},</p>
+        </div>
+        <div class="right">
+          <p class="msg">${message}</p>
+        </div>
+      `;
+      return card;
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const name = form.name.value.trim();
+      const age = form.age.value.trim();
+      const hobby = form.hobby.value.trim();
+
+      if (!name || !age || !hobby) return;
+
+      const newCard = createCard(name, age, hobby);
+
+      // Keep previous cards visible; newest on top.
+      cardsEl.prepend(newCard);
+
+      if (emptyState) emptyState.remove();
+      form.reset();
+      form.name.focus();
+    });
+  </script>
+</body>
+</html>

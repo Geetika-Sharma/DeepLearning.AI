@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Birthday Card Writer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#FFDEE9; /* pink */
+      --bg2:#B5FFFC; /* aqua */
+      --accent:#FFB830;
+      --card-bg:#FFF9EE;
+      --paper:#fff;
+    }
+    html,body{height:100%;margin:0;font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      display:flex;flex-direction:column;gap:18px;padding:28px;
+      color:#2b2b2b;
+    }
+
+    header{display:flex;align-items:center;justify-content:space-between}
+    .page-title{
+      display:flex;flex-direction:column;
+    }
+    .page-title h1{
+      margin:0;font-size:2.2rem;color:#3b1f6b;letter-spacing:1px;font-weight:800;
+      text-shadow:0 2px 0 rgba(255,255,255,0.6);
+    }
+    .page-title p{margin:4px 0 0;font-size:0.95rem;color:#3b1f6b;opacity:0.9;font-weight:600}
+
+    main{flex:1;display:flex;gap:24px;align-items:flex-start}
+    .left{
+      width:360px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.7),rgba(255,255,255,0.5));
+      border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,0.08);backdrop-filter: blur(6px);
+    }
+    form{display:flex;flex-direction:column;gap:12px}
+    label{font-weight:700;font-size:0.85rem;color:#2f1a53}
+    input[type="text"], input[type="number"]{
+      padding:10px;border-radius:8px;border:1px solid rgba(50,50,50,0.08);
+      font-size:1rem;
+    }
+    button{
+      margin-top:6px;padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#ff8da1);
+      color:white;font-weight:800;cursor:pointer;font-size:1rem;
+      box-shadow:0 6px 14px rgba(255,184,48,0.18);
+    }
+    .controls{display:flex;gap:8px;align-items:center}
+    .controls button.secondary{
+      background:#fff;color:#3b1f6b;border:1px solid rgba(59,31,107,0.08);
+      box-shadow:none;padding:9px 12px;font-weight:700;
+    }
+
+    /* Right side: card viewer */
+    .right{flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+    .cards-view{
+      width:560px;min-height:320px;max-height:75vh;overflow:auto;padding:20px;
+      display:flex;flex-direction:column;gap:18px;align-items:flex-end;
+    }
+
+    /* single card style: inside of a folded card */
+    .card{
+      width:460px;border-radius:10px;background:linear-gradient(180deg,var(--card-bg),#fff);
+      box-shadow:0 12px 30px rgba(0,0,0,0.12);position:relative;padding:22px 26px;
+      transform-origin:top right; /* gives stacked card look */
+    }
+    /* left fold edge */
+    .card::before{
+      content:"";position:absolute;left:0;top:0;bottom:0;width:38px;border-top-left-radius:10px;border-bottom-left-radius:10px;
+      background:linear-gradient(90deg,rgba(0,0,0,0.02),rgba(0,0,0,0));
+      box-shadow:inset 6px 0 10px rgba(0,0,0,0.03);
+    }
+    .card .greeting{
+      font-family:'Patrick Hand',cursive;font-size:1.28rem;color:#2a2a2a;
+      line-height:1.35;
+    }
+    .card .meta{margin-top:10px;font-size:0.9rem;color:#5b4b6b;font-weight:700}
+    .card .message{margin-top:14px;font-size:1rem;color:#333;white-space:pre-wrap}
+    .card .footer{margin-top:14px;font-size:0.9rem;color:#6b4b90;font-weight:700;text-align:right}
+
+    /* stacked visual offset for older cards */
+    .cards-view .card:nth-child(n+1){ /* make each subsequent card slightly rotated/offset */
+      transform: translateY(0);
+    }
+    .cards-view .card + .card{ transform: translateY(8px) scale(0.995); opacity:0.96 }
+    .cards-view .card + .card + .card{ transform: translateY(16px) scale(0.99); opacity:0.94 }
+    .cards-view .card + .card + .card + .card{ transform: translateY(24px) scale(0.985); opacity:0.92 }
+
+    .small-note{font-size:0.85rem;color:#3b1f6b;opacity:0.9;margin-top:6px}
+    /* scrollbar nicer */
+    .cards-view::-webkit-scrollbar{height:10px;width:10px}
+    .cards-view::-webkit-scrollbar-thumb{background:rgba(59,31,107,0.2);border-radius:10px}
+    @media (max-width:920px){main{flex-direction:column}.right{align-items:center}.cards-view{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="page-title">
+      <h1>Confetti & Quips</h1>
+      <p>Turn a name, age, and hobby into a hilarious birthday note</p>
+    </div>
+    <div style="text-align:right;color:#3b1f6b;font-weight:700">Make birthdays unforgettable 🎉</div>
+  </header>
+
+  <main>
+    <section class="left" aria-labelledby="form-title">
+      <h2 id="form-title" style="margin:0 0 10px;font-size:1.05rem;color:#3b1f6b">Write a card</h2>
+      <form id="cardForm">
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="e.g., Alex" required>
+
+        <label for="age">Age</label>
+        <input id="age" type="number" min="0" max="150" placeholder="e.g., 29" required>
+
+        <label for="hobby">Hobby</label>
+        <input id="hobby" type="text" placeholder="e.g., guitar, baking, running" required>
+
+        <div class="controls">
+          <button type="submit">Create Card</button>
+          <button type="button" class="secondary" id="clearAll">Clear all</button>
+        </div>
+        <div class="small-note">New cards appear at the top; older ones stack underneath.</div>
+      </form>
+    </section>
+
+    <section class="right" aria-live="polite">
+      <div style="font-weight:800;color:#3b1f6b">Your cards</div>
+      <div class="cards-view" id="cardsView" aria-label="Generated birthday cards">
+        <!-- cards will be prepended here -->
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('cardForm');
+    const cardsView = document.getElementById('cardsView');
+    const clearBtn = document.getElementById('clearAll');
+
+    function randomChoice(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+    function generateMessage(name, age, hobby){
+      const openings = [
+        `Happy ${age}th Birthday, ${name}!`,
+        `Hey ${name}, ${age} never looked this mischievous!`,
+        `${name} — congratulations on leveling up to ${age}!`
+      ];
+      const jokes = [
+        `At ${age}, you're the perfect mix of wisdom and "what did I come into this room for?"`,
+        `You're like a classic ${hobby} — getting better and slightly more expensive to maintain.`,
+        `Keep doing ${hobby} — it's the only evidence you have that you're still young at heart.`,
+        `If age were a hobby, you'd have a master's degree by now.`,
+        `You're the reason cake needs so many candles. Fire safety appreciates you.`
+      ];
+      const closers = [
+        `Wishing you a day of laughs, cake, and frequent ${hobby}-breaks.`,
+        `May your ${hobby} supplies never run out and your cake never end.`,
+        `Here’s to more fun, fewer instructions, and flawless ${hobby} sessions.`
+      ];
+
+      const opener = randomChoice(openings);
+      const line1 = `${opener} I mean, ${age} is just a number — but it’s a pretty stylish number on you.`;
+      const line2 = randomChoice(jokes);
+      const line3 = randomChoice(closers);
+
+      return `${line1}\n\n${line2}\n\n${line3}\n\n— Cheers!`;
+    }
+
+    function createCardElement(name, age, hobby){
+      const el = document.createElement('article');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="greeting">To ${name},</div>
+        <div class="meta">Age: ${age} • Hobby: ${hobby}</div>
+        <div class="message">${escapeHtml(generateMessage(name, age, hobby))}</div>
+        <div class="footer">Have a blast 🎈</div>
+      `;
+      return el;
+    }
+
+    // basic HTML escape for user input
+    function escapeHtml(str){
+      return str.replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = form.name.value.trim() || 'Friend';
+      const age = form.age.value.trim() || 'Unknown';
+      const hobby = form.hobby.value.trim() || 'adventures';
+      const cardEl = createCardElement(name, age, hobby);
+      // prepend so newest stays on top and older cards appear underneath
+      cardsView.prepend(cardEl);
+      // subtle flash to draw attention
+      cardEl.animate([{transform:'scale(0.98)',opacity:0.8},{transform:'scale(1)',opacity:1}],{duration:260,easing:'ease-out'});
+      form.reset();
+      form.name.focus();
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      if(confirm('Clear all generated cards?')) cardsView.innerHTML = '';
+    });
+
+    // sample starter card
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const starter = createCardElement('Alex', 30, 'guitar');
+      cardsView.appendChild(starter);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Card Generator</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #ff69b4, #ffd700);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #ff1493;
+            text-shadow: 2px 2px #fff;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .form-section {
+            flex: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin-right: 20px;
+        }
+        .card-section {
+            flex: 1;
+            position: relative;
+        }
+        .card {
+            background: #fff;
+            border: 2px solid #ff69b4;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-size: 1.2em;
+            text-align: center;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #ff69b4;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #ff1493;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎉 Party Time Birthday Card Maker! 🎉</h1>
+    <div class="container">
+        <div class="form-section">
+            <h2>Fill in the details:</h2>
+            <input type="text" id="name" placeholder="Person's Name">
+            <input type="number" id="age" placeholder="Age">
+            <input type="text" id="hobby" placeholder="Hobby">
+            <button onclick="generateCard()">Generate Funny Card!</button>
+        </div>
+        <div class="card-section" id="cards">
+            <!-- Cards will be appended here -->
+        </div>
+    </div>
+    <script>
+        function generateCard() {
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const hobby = document.getElementById('hobby').value;
+            if (!name || !age || !hobby) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            const messages = [
+                `Happy Birthday, ${name}! At ${age}, you're still ${hobby}ing like a boss. Don't let age slow you down – unless ${hobby} involves running!`,
+                `Dear ${name}, turning ${age} is no biggie when you're the ${hobby} champion. Keep ${hobby}ing and stay forever young!`,
+                `To ${name}, the ${age}-year-old ${hobby} wizard! May your birthday be as epic as your ${hobby} skills. Party on!`,
+                `Hey ${name}! ${age} looks great on you, especially with all that ${hobby} expertise. Here's to more adventures in ${hobby} land!`
+            ];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.innerHTML = `<p>${randomMessage}</p>`;
+            document.getElementById('cards').prepend(cardDiv);
+        }
+    </script>
+</body>
+</html>
